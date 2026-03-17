@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pattern Lab v2+</title>
+<title>Pattern Lab v2+ FINAL</title>
 
 <style>
 html,body{
@@ -102,7 +102,7 @@ border-radius:6px;
 
 <div class="panel">
 
-<h2>Pattern Lab v2+</h2>
+<h2>Pattern Lab v2+ FINAL</h2>
 
 <div class="control">
 <label>Scale</label>
@@ -168,7 +168,6 @@ loadFile(e.dataTransfer.files[0])
 })
 
 function loadFile(file){
-
 if(!file) return
 
 const reader=new FileReader()
@@ -180,7 +179,6 @@ updatePattern()
 }
 
 reader.readAsDataURL(file)
-
 }
 
 function updatePattern(){
@@ -189,31 +187,31 @@ if(!img) return
 
 const size = Number(scale.value)
 
+// 기본 패턴
 if(repeatMode.value === "basic"){
-
 view.style.backgroundImage = `url(${img})`
 view.style.backgroundSize = size + "px"
 view.style.backgroundPosition = offsetX.value+"px "+offsetY.value+"px"
 return
 }
 
-// 🔥 Canvas 기반 패턴 생성 (빈 공간 해결 버전)
+// 🔥 핵심: 넉넉한 캔버스 (빈공간 방지)
 const canvas=document.createElement("canvas")
 const ctx=canvas.getContext("2d")
 
-canvas.width = size * 3
-canvas.height = size * 3
+canvas.width = size * 4
+canvas.height = size * 4
 
 const image=new Image()
 image.src=img
 
 image.onload=()=>{
 
-for(let x=0; x<3; x++){
-for(let y=0; y<3; y++){
+for(let x=0; x<4; x++){
+for(let y=0; y<4; y++){
 
-let dx = (x - 1) * size
-let dy = (y - 1) * size
+let dx = (x - 2) * size
+let dy = (y - 2) * size
 
 const col = x
 const row = y
@@ -222,13 +220,17 @@ const row = y
 if(repeatMode.value==="zigzagX"){
 if(row % 2 === 0){
 dx += size/2
+} else {
+dx -= size/2
 }
 }
 
-// 세로 지그재그
+// 세로 지그재그 (🔥 완전 해결 버전)
 if(repeatMode.value==="zigzagY"){
 if(col % 2 === 0){
 dy += size/2
+} else {
+dy -= size/2
 }
 }
 
@@ -236,20 +238,26 @@ dy += size/2
 if(repeatMode.value==="zigzagXY"){
 if(row % 2 === 0){
 dx += size/2
+} else {
+dx -= size/2
 }
+
 if(col % 2 === 0){
 dy += size/2
+} else {
+dy -= size/2
 }
 }
 
-ctx.drawImage(image, dx, dy, size, size)
+// 👉 중앙 기준 보정 (패턴 자연스럽게)
+ctx.drawImage(image, dx - size/2, dy - size/2, size, size)
 
 }
 }
 
 // 결과 적용
 view.style.backgroundImage = `url(${canvas.toDataURL()})`
-view.style.backgroundSize = size*3 + "px"
+view.style.backgroundSize = size*4 + "px"
 view.style.backgroundPosition = offsetX.value+"px "+offsetY.value+"px"
 
 }
@@ -258,8 +266,8 @@ view.style.backgroundPosition = offsetX.value+"px "+offsetY.value+"px"
 
 // 컨트롤
 scale.oninput=updatePattern
-offsetX.oninput=()=>updatePattern()
-offsetY.oninput=()=>updatePattern()
+offsetX.oninput=updatePattern
+offsetY.oninput=updatePattern
 repeatMode.onchange=updatePattern
 
 bg.oninput=()=>{
