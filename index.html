@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pattern Lab v2+ FINAL</title>
+<title>Pattern Lab FINAL</title>
 
 <style>
 html,body{
@@ -28,11 +28,9 @@ position:fixed;
 width:100%;
 height:100%;
 pointer-events:none;
-
 background-image:
 linear-gradient(rgba(0,0,0,0.15) 1px, transparent 1px),
 linear-gradient(90deg, rgba(0,0,0,0.15) 1px, transparent 1px);
-
 background-size:200px 200px;
 display:none;
 }
@@ -79,12 +77,13 @@ width:100%;
 
 button{
 width:100%;
-margin-top:5px;
+margin-top:6px;
 padding:8px;
 border:none;
 background:#333;
 color:white;
 border-radius:6px;
+cursor:pointer;
 }
 </style>
 
@@ -102,7 +101,7 @@ border-radius:6px;
 
 <div class="panel">
 
-<h2>Pattern Lab v2+ FINAL</h2>
+<h2>Pattern Lab FINAL</h2>
 
 <div class="control">
 <label>Scale</label>
@@ -123,9 +122,9 @@ border-radius:6px;
 <label>Repeat Mode</label>
 <select id="repeatMode">
 <option value="basic">Basic</option>
-<option value="zigzagX">Zigzag X (가로)</option>
-<option value="zigzagY">Zigzag Y (세로)</option>
-<option value="zigzagXY">Zigzag XY (전체)</option>
+<option value="zigzagX">Zigzag X</option>
+<option value="zigzagY">Zigzag Y</option>
+<option value="zigzagXY">Zigzag XY</option>
 </select>
 </div>
 
@@ -134,7 +133,7 @@ border-radius:6px;
 <input type="color" id="bg" value="#dddddd">
 </div>
 
-<button id="gridBtn">Grid Toggle</button>
+<button id="gridBtn">Grid Toggle</button> <button id="downloadBtn">PNG 다운로드</button>
 
 </div>
 
@@ -142,7 +141,6 @@ border-radius:6px;
 
 const view=document.getElementById("view")
 const grid=document.getElementById("grid")
-
 const drop=document.getElementById("drop")
 const fileInput=document.getElementById("file")
 
@@ -153,6 +151,7 @@ const repeatMode=document.getElementById("repeatMode")
 const bg=document.getElementById("bg")
 
 let img=null
+let currentCanvas=null
 
 drop.onclick=()=>fileInput.click()
 
@@ -187,7 +186,7 @@ if(!img) return
 
 const size = Number(scale.value)
 
-// 기본 패턴
+// 기본
 if(repeatMode.value === "basic"){
 view.style.backgroundImage = `url(${img})`
 view.style.backgroundSize = size + "px"
@@ -195,70 +194,57 @@ view.style.backgroundPosition = offsetX.value+"px "+offsetY.value+"px"
 return
 }
 
-// 🔥 핵심: 넉넉한 캔버스 (빈공간 방지)
+// 🔥 타일 1개 생성
 const canvas=document.createElement("canvas")
 const ctx=canvas.getContext("2d")
 
-canvas.width = size * 4
-canvas.height = size * 4
+canvas.width = size * 2
+canvas.height = size * 2
 
 const image=new Image()
 image.src=img
 
 image.onload=()=>{
 
-for(let x=0; x<4; x++){
-for(let y=0; y<4; y++){
+for(let x=0; x<2; x++){
+for(let y=0; y<2; y++){
 
-let dx = (x - 2) * size
-let dy = (y - 2) * size
+let dx = x * size
+let dy = y * size
 
-const col = x
-const row = y
-
-// 가로 지그재그
 if(repeatMode.value==="zigzagX"){
-if(row % 2 === 0){
+if(y % 2 === 1){
 dx += size/2
-} else {
-dx -= size/2
 }
 }
 
-// 세로 지그재그 (🔥 완전 해결 버전)
 if(repeatMode.value==="zigzagY"){
-if(col % 2 === 0){
+if(x % 2 === 1){
 dy += size/2
-} else {
-dy -= size/2
 }
 }
 
-// 전체 지그재그
 if(repeatMode.value==="zigzagXY"){
-if(row % 2 === 0){
+if(y % 2 === 1){
 dx += size/2
-} else {
-dx -= size/2
 }
-
-if(col % 2 === 0){
+if(x % 2 === 1){
 dy += size/2
-} else {
-dy -= size/2
 }
 }
 
-// 👉 중앙 기준 보정 (패턴 자연스럽게)
-ctx.drawImage(image, dx - size/2, dy - size/2, size, size)
+ctx.drawImage(image, dx, dy, size, size)
 
 }
 }
 
 // 결과 적용
 view.style.backgroundImage = `url(${canvas.toDataURL()})`
-view.style.backgroundSize = size*4 + "px"
+view.style.backgroundSize = (size*2) + "px " + (size*2) + "px"
 view.style.backgroundPosition = offsetX.value+"px "+offsetY.value+"px"
+
+// 다운로드용 저장
+currentCanvas = canvas
 
 }
 
@@ -276,6 +262,16 @@ view.style.backgroundColor=bg.value
 
 document.getElementById("gridBtn").onclick=()=>{
 grid.style.display = grid.style.display=="none"?"block":"none"
+}
+
+// 🔥 PNG 다운로드
+document.getElementById("downloadBtn").onclick=()=>{
+if(!currentCanvas) return alert("이미지를 먼저 업로드하세요!")
+
+const link=document.createElement("a")
+link.download="pattern.png"
+link.href=currentCanvas.toDataURL("image/png")
+link.click()
 }
 
 </script>
