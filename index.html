@@ -50,6 +50,7 @@ font-weight:600;
 font-size:20px;
 border:4px dashed rgba(0,0,0,0.2);
 background:rgba(255,255,255,0.4);
+cursor:pointer;
 }
 
 .panel{
@@ -186,30 +187,33 @@ function updatePattern(){
 
 if(!img) return
 
-const size = scale.value
+const size = Number(scale.value)
 
-// 기본 배경
-let bgImage = `url(${img})`
+if(repeatMode.value === "basic"){
 
-// 🔥 핵심: zigzag 구현
-if(repeatMode.value !== "basic"){
+view.style.backgroundImage = `url(${img})`
+view.style.backgroundSize = size + "px"
+view.style.backgroundPosition = offsetX.value+"px "+offsetY.value+"px"
+return
+}
 
+// 🔥 Canvas 기반 패턴 생성 (빈 공간 해결 버전)
 const canvas=document.createElement("canvas")
 const ctx=canvas.getContext("2d")
 
-canvas.width=size*2
-canvas.height=size*2
+canvas.width = size * 3
+canvas.height = size * 3
 
 const image=new Image()
 image.src=img
 
 image.onload=()=>{
 
-for(let x=0; x<2; x++){
-for(let y=0; y<2; y++){
+for(let x=0; x<3; x++){
+for(let y=0; y<3; y++){
 
-let dx = x * size
-let dy = y * size
+let dx = (x - 1) * size
+let dy = (y - 1) * size
 
 const col = x
 const row = y
@@ -243,29 +247,19 @@ ctx.drawImage(image, dx, dy, size, size)
 }
 }
 
+// 결과 적용
 view.style.backgroundImage = `url(${canvas.toDataURL()})`
-view.style.backgroundSize = size*2 + "px"
+view.style.backgroundSize = size*3 + "px"
+view.style.backgroundPosition = offsetX.value+"px "+offsetY.value+"px"
 
 }
-
-return
-}
-
-// basic 모드
-view.style.backgroundImage = bgImage
-view.style.backgroundSize = size + "px"
 
 }
 
 // 컨트롤
 scale.oninput=updatePattern
-offsetX.oninput=()=>{
-view.style.backgroundPosition = offsetX.value+"px "+offsetY.value+"px"
-}
-offsetY.oninput=()=>{
-view.style.backgroundPosition = offsetX.value+"px "+offsetY.value+"px"
-}
-
+offsetX.oninput=()=>updatePattern()
+offsetY.oninput=()=>updatePattern()
 repeatMode.onchange=updatePattern
 
 bg.oninput=()=>{
